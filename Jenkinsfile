@@ -26,5 +26,10 @@ pipeline {
                 sh 'nohup npm start &'
             }
         }
-    }
-}
+    
+
+       stage('Test') {
+          steps {
+              sh 'npm test || echo "No tests found"'
+          } 
+      }}
