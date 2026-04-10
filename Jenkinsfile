@@ -9,7 +9,7 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
@@ -21,44 +21,33 @@ pipeline {
             }
         }
 
-        stage('Run App') {
+        stage('Build Docker Image') {
             steps {
-                sh 'nohup npm start &'
-            }
-        }
-        
-       pipeline {
-    agent any
-
-    stages {
-
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/sadamsairam/node-js-sample.git'
+                sh 'docker build -t node-app:latest .'
             }
         }
 
-        stage('Build') {
+        stage('Stop Old Container') {
             steps {
-                sh 'npm install'
+                sh 'docker stop node-app || true'
+                sh 'docker rm node-app || true'
             }
         }
 
-        stage('Docker Build') {
+        stage('Run Docker Container') {
             steps {
-                sh 'docker build -t node-app .'
+                sh 'docker run -d -p 3000:3000 --name node-app node-app:latest'
             }
         }
 
-        stage('Docker Run') {
-            steps {
-                sh '''
-                docker stop node-app || true
-                docker rm node-app || true
-                docker run -d -p 3000:3000 --name node-app node-app
-                '''
-            }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executed successfully 🚀'
+        }
+        failure {
+            echo 'Pipeline failed ❌ check logs'
         }
     }
-}
 }
